@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!-- Property -->
+	<property resource="application.properties" />
+	<property name="LOG_FORMAT_VERSION" value="1.0.0" />
+	<property name="TIME_ZONE" value="Asia/Tokyo" />
+	<property name="TIMESTAMP_PATTERN" value="yyyy-MM-dd HH:mm:ss.SSS" />
+	<property name="SEPARATOR" value="UNIX" />
+
+	<!-- Console Appender -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{${TIMESTAMP_PATTERN}} [%thread] %-5level %logger - %msg - mdc=[%mdc]%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- Log file path -->
+		<file>./log/app/application.log</file>
+		<!-- Rolling -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- ローテーションするファイル名のパターンを指定 -->
+			<fileNamePattern>./log/app/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<!-- ログファイルの最大履歴数を指定 -->
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+		<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+			<!-- jsonフォーマットを見やすく表示 -->
+			<jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator" />
+			<providers>
+				<pattern>
+					<pattern>
+						{ "format": "${LOG_FORMAT_VERSION}" }
+					</pattern>
+				</pattern>
+				<nestedField>
+					<fieldName>logs</fieldName>
+					<providers>
+						<timestamp>
+							<fieldName>timestamp</fieldName>
+							<timeZone>${TIME_ZONE}</timeZone>
+							<pattern>${TIMESTAMP_PATTERN}</pattern>
+						</timestamp>
+						<!-- Providers for LoggingEvents:https://github.com/logfellow/logstash-logback-encoder#providers-for-loggingevents -->
+						<callerData />
+						<loggerName />
+						<logLevel />
+						<logLevelValue>
+							<fieldName>level_value</fieldName>
+						</logLevelValue>
+						<mdc />
+						<message />
+					</providers>
+				</nestedField>
+			</providers>
+			<lineSeparator>${SEPARATOR}</lineSeparator>
+		</encoder>
+	</appender>
+
+	<root level="${logging.level.root}">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+	</root>
+
+</configuration>

@@ -1,2 +1,1 @@
-# SpringSample
-For studying SpringFramework
+# spring
